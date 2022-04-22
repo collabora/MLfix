@@ -1,0 +1,3 @@
+fastai
+imageio
+imageio-ffmpeg
