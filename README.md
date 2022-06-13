@@ -1,4 +1,7 @@
 # ML QA – using AI to explore and fix datasets
+
+[![Join the chat at https://gitter.im/MLfix/community](https://badges.gitter.im/MLfix/community.svg)](https://gitter.im/MLfix/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 > This repository contains the training and inference code for the ML QA tools.
 
 
