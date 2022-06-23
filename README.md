@@ -14,26 +14,25 @@ The tools work by sorting the images by visual similarity and then showing them 
 ![A futuristic robot cleaning streets of New York that are overflowing with papers.](banner.jpg)
 Is your dataset overflowing with low quality samples? Our highly-skilled robots can help you!
 
-## Install
-
-Please install from source for now:
-
-`pip install -e .`
-
 ## How to use
 
-This library contains command line tools to process the image. To start with the [Women in T-Shirts dataset](https://github.com/collabora/women-in-t-shirts), run the following commands:
+This library contains command line tools to process the image. Right now it's easiest to start with any dataset in the ImageNet format (one folder per class) or with just a folder of unsorted pictures. For example if you download [the DeepFashion2 dataset](https://github.com/switchablenorms/DeepFashion2) you can run the following commands:
+
 
 ```
-git clone https://github.com/collabora/women-in-t-shirts.git
-qa_backend_pretrain --pretrained ./women-in-tshirts  # trains a model and generates the BoVW features
-qa_backend_sort_images ./women-in-tshirts            # creates a JSON with all images sorted by similarity
+git clone https://github.com/collabora/MLfix.git
+cd MLfix
+pip install -e .
+qa_backend_downsize_images ./deepfashion2 ./deepfashion2-256
+qa_backend_pretrain --pretrained ./deepfashion2-256  # trains a model (starting from ImageNet weights)
+                                                     # and generates the BoVW features
+qa_backend_sort_images ./deepfashion2-256            # creates a JSON with all images sorted by similarity
 ```
 
 Afterwards you can go run `python -m http.server` and go to the URL:
-`http://localhost:8000/mlfix-ui/#../women-in-tshirts/barlow-twins-resnet18-pretrained-224-5e-proj2048-lr0.5e-3-grouped.json` to load the MLfix web app.
+`http://localhost:8000/mlfix-ui/#../deepfashion2-256/barlow-twins-resnet18-pretrained-224-5e-proj2048-lr0.5e-3-sample-nosort.json` to load the MLfix web app.
 
 If you want to run it on you own data it may help to resize the images first:
 ```
-qa_backend_downsize_images ./women-in-tshirts-large ./women-in-tshirts
+
 ```
