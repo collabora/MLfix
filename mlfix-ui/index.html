@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    #photos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .photo-img {
+      height: 250px;
+      max-width: 400px;
+      min-width: 100px;
+    }
+    .photo {
+      margin: 10px 0;
+      display: inline-block;
+      opacity: 0.6;
+    }
+    .photo.highlighted {
+      outline: 2px solid green;
+      opacity: 1;
+    }
+    .photo.marked {
+      outline: 2px solid red;
+    }
+    .photo:hover, .photo:hover img {
+      /*opacity: 1;*/
+      /*background: transparent;*/
+    }
+    .filter-only-marked .marked img {
+      opacity: 1;
+    }
+    .marked {
+      background: #faa;
+    }
+    .marked img {
+      opacity: 0.4;
+    }
+    #drop-mask {
+      position:  fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: #eeeb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .drop-tooltip {
+      background: #fff;
+      font-size: 2em;
+      padding: 30px;
+      border-radius: 15px;
+      pointer-events: none;
+    }
+    .drop-icon {
+      font-size: 5em;
+      display: block;
+      text-align: center;
+      padding: 15px;
+      color: #5334bc;
+    }
+    #no-photos {
+      text-align: center;
+    }
+    h2 {
+      width: 100%;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js" integrity="sha512-2AL/VEauKkZqQU9BHgnv48OhXcJPx9vdzxN1JrKDVc4FPU/MEE/BZ6d9l0mP7VmvLsjtYwqiYQpDskK9dG8KBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js" integrity="sha512-+BMamP0e7wn39JGL8nKAZ3yAQT2dL5oaXWr4ZYlTGkKOaoXM/Yj7c4oy50Ngz5yoUutAG17flueD4F6QpTlPng==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script type="text/javascript" src="main.js"></script>
+</head>
+
+<body><div class="container">
+  <nav class="navbar navbar-expand-lg navbar-dark" style="background: #5334BC;">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="logo.svg" alt="" width="62" style="margin-bottom: 3px; margin-right: 3px" class="d-inline-block">
+        MLfix Image v0.2
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item dropdown">
+            <a class="nav-link active dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+               data-bind="text: source().name">
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown" data-bind="foreach: sources">
+              <li><a class="dropdown-item" data-bind="text: name, attr: { href: '#'+json_url }, click: function () { model.source($data) }"></a></li>
+            </ul>
+          </li>
+        </ul>
+        <ul class="navbar-nav mb-2 mb-lg-0">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle mx-3" id="markedDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bind="text: 'Marked: '+marked_count()+'/'+photos_count()"></a>
+            <ul class="dropdown-menu" aria-labelledby="markedDropdown">
+              <li><a class="dropdown-item" data-bind="css: { active: model.filter() == $data }, click: model.clear_all_marked">
+                <span>Clear all markings</span> 
+              </a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="filterDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-exclamation-triangle" style="color: #e51;" data-bind="visible: filter() != 'all' && filtered_photos().length == 0"></i> <span data-bind="text: 'Show '+model.filter()"></span>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="filterDropdown" data-bind="foreach: ['all', 'only marked', 'only unmarked']">
+              <li><a class="dropdown-item" data-bind="css: { active: model.filter() == $data }, click: function () { model.filter($data) }">
+                <span data-bind="text: 'Show '+$data"></span> 
+              </a></li>
+            </ul>
+          </li>
+          <li class="nav-item ms-3" data-bind="click: revert_changes, visible: model.last_modified()">
+            <a class="nav-link"><i class="far fa-trash-alt"></i> Revert</a>
+          </li>
+          <li class="nav-item ms-3" data-bind="click: download_json">
+            <a class="nav-link"><i class="far fa-save"></i> Save</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="d-flex justify-content-center text-warning my-4" data-bind="if: !model.error() && model.photos().length == 0">
+    <div class="spinner-border text-warning" role="status"></div><h3 class="ms-3">Loading...</h3>
+  </div>
+  <div class="d-flex justify-content-center text-error my-4" data-bind="if: model.error()">
+    <h3 class="ms-3"><i class="fa-solid fa-triangle-exclamation"></i> <span data-bind="text: model.error"></span></h3>
+  </div>
+  <div id="no-photos" data-bind="if: filtered_photos().length == 0">
+    There are no photos. Please check your filter setting or select a diferent source.
+  </div>
+  <div id="photos" data-bind="foreach: filtered_photos, css: 'filter-'+model.filter().replace(' ', '-')">
+    <!-- ko component: {
+      name: kind,
+      params: $data
+    } -->
+    <!-- /ko -->
+  </div>
+  <div id=drop-mask style="display: none;">
+    <div class="drop-tooltip"><i class="drop-icon fas fa-file-upload"></i> Upload your search data</div>
+  </div>
+</div></body>
+</html>

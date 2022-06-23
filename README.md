@@ -1,5 +1,5 @@
-# ML QA – using AI to explore and fix datasets
-> This repository contains the training and inference code for the ML QA tools.
+# MLfix – using AI and UI to explore and fix datasets
+
 
 
 ## Install
@@ -10,13 +10,18 @@ Please install from source for now:
 
 ## How to use
 
-This library contains command line tools to process the dataset. To start run the following commands:
+This library contains command line tools to process the image. To start with the [Women in T-Shirts dataset](https://github.com/collabora/women-in-t-shirts), run the following commands:
 
 ```
-qa_backend_downsize_images ./women-in-tshirts ./women-in-tshirts-256
-qa_backend_pretrain --pretrained ./women-in-tshirts-256
-qa_backend_extract_features ./women-in-tshirts-256
-qa_backend_sort_images ./women-in-tshirts-256
+git clone https://github.com/collabora/women-in-t-shirts.git
+qa_backend_pretrain --pretrained ./women-in-tshirts  # trains a model and generates the BoVW features
+qa_backend_sort_images ./women-in-tshirts            # creates a JSON with all images sorted by similarity
 ```
 
-Afterwards you can use the `./women-in-tshirts-256/barlow-twins-resnet18-pretrained-224-5e-proj2048-lr0.5e-3-grouped.json` file in the ML QA web app.
+Afterwards you can go run `python -m http.server` and go to the URL:
+`http://localhost:8000/mlfix-ui/#../women-in-tshirts/barlow-twins-resnet18-pretrained-224-5e-proj2048-lr0.5e-3-grouped.json` to load the MLfix web app.
+
+If you want to run it on you own data it may help to resize the images first:
+```
+qa_backend_downsize_images ./women-in-tshirts-large ./women-in-tshirts
+```
