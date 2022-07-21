@@ -1,1 +1,1 @@
-from jupyter_widget import MLfix
+from .jupyter_widget import MLfix

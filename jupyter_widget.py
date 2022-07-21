@@ -1,6 +1,7 @@
-from IPython.display import display, HTML
+import random, string, os, json
 import cherrypy
 import pandas as pd
+from IPython.display import display, HTML
 from pathlib import Path
 
 # FIXME: setup a package-local cherrypy server?
@@ -12,32 +13,36 @@ cherrypy.config.update({
 })
 cherrypy.engine.start()
 
-class MLfix:
-  def __new__(cls, df, group='label', sort='score', label=None, invalid_label='invalid', hotkey_labels=[], label_icons=None, caption=None, path="."):
-    self = cls()
-    self.df = df
-    self.path = path
+def MLfix(df, path=".", size=200, group='label', sort='score', label=None, invalid_label='invalid', hotkey_labels=[], label_icons=None, caption=None):
+  self = MLfixImpl()
+  self.df = df
+  self.path = path
+  self.size = size
 
-    self.hotkey_labels = hotkey_labels
-    self.invalid_label = invalid_label
-    if invalid_label not in self.hotkey_labels: self.hotkey_labels.append(invalid_label)
-    self.label_icons = label_icons or {}
+  self.hotkey_labels = hotkey_labels
+  self.invalid_label = invalid_label
+  if invalid_label not in self.hotkey_labels: self.hotkey_labels.append(invalid_label)
+  self.label_icons = label_icons or {}
 
-    self.group_col = group
-    self.sort_col = sort
-    self.label_col = label
-    self.caption_col = caption
+  self.group_col = group
+  self.sort_col = sort
+  self.label_col = label
+  self.caption_col = caption
 
-    if self.group_col in df:
-      self.groups = []
-      for name,rows in df.groupby(self.group_col):
-        self.add_group(name, rows)
+  if self.group_col in df:
+    self.groups = []
+    for name,rows in df.groupby(self.group_col):
+      self.add_group(name, rows)
 
-    old_labels = None
-    if self.label_col: old_labels = df[self.label_col]
-    self.new_labels = pd.Series(data=old_labels, index=df.index, dtype=object, copy=True)
-    self.display()
-    return new_labels
+  old_labels = None
+  if self.label_col: old_labels = df[self.label_col]
+  self.new_labels = pd.Series(data=old_labels, index=df.index, dtype=object, copy=True)
+  self.display()
+  return self.new_labels
+
+class MLfixImpl:
+  def __init__(self):
+    pass
 
   def add_group(self, name, rows):
     if self.sort_col in rows:
@@ -45,10 +50,10 @@ class MLfix:
     photos = []
     for row in rows.itertuples():
       photo = dict(dist_to_mean=0,
-        murl=str(row.fname),
+        fname=str(row.fname),
         idx=str(row.Index)
       )
-      photo['label'] = getattr(row, self.group_col)
+      photo['label'] = getattr(row, self.label_col)
       if self.caption_col and hasattr(row, self.caption_col):
         photo['caption'] = getattr(row, self.caption_col)
       photos.append(photo)
@@ -71,19 +76,21 @@ class MLfix:
   @cherrypy.expose
   def data(self):
     data = {}
+    data['size'] = self.size
     data['invalid_label'] = self.invalid_label
     data['groups'] = self.groups
-    data['group_icons'] = self.group_icons
+    data['label_icons'] = self.label_icons
     data['hotkey_labels'] = self.hotkey_labels
     return json.dumps(data)
 
   @cherrypy.expose
-  def set_label(self, idx, group):
-    print(idx, '-> group:', group)
-    self.new_labels.loc[idx] = group
+  def set_label(self, idx, label):
+    print(idx, 'label =', label)
+    self.new_labels.loc[idx] = label
 
   def display(self):
     frameid = 'mlfix-' + ''.join(random.choices(string.ascii_letters + string.digits, k=5))
+    # FIXME: `frameid` here blocks any possible client-side caching
     cherrypy.tree.mount(self, '/'+frameid, {
       '/': {
         'tools.staticdir.on': True,
@@ -116,7 +123,7 @@ class MLfix:
       }
     </style>
     <div id="""+frameid+"""-container class=mlfix-container>
-      <iframe id="""+frameid+""" src="/proxy/"""+str(cherrypy.server.bound_addr[1])+"""/"""+frameid+"""#"""+frameid+""""
+      <iframe id="""+frameid+""" src="/proxy/"""+str(cherrypy.server.bound_addr[1])+"""/"""+frameid+"""/#"""+frameid+""""
               width="100%" height="500px" frameborder="0" allowfullscreen></iframe>
       <script>(function () {
         var iframe = document.getElementById('"""+frameid+"""');

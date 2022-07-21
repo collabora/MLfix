@@ -12,11 +12,10 @@
       flex-wrap: wrap;
       justify-content: space-between;
     }
-    .photo-label {
+    .photo-caption {
       text-align: center;
     }
-    .photo-group {
-      /*background-color: #2a3;*/
+    .photo-label {
       border-radius: 5px;
       width: 5em;
       margin: 5px auto;
@@ -25,15 +24,9 @@
     .photo {
       margin: 10px 0;
       display: inline-block;
-      /*opacity: 0.6;*/
-      /*background: white;*/
     }
     .photo.marked {
       outline: 2px solid red;
-    }
-    .photo:hover, .photo:hover img {
-      /*opacity: 1;*/
-      /*background: transparent;*/
     }
     .filter-only-marked .marked img {
       opacity: 1;
@@ -89,7 +82,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js" integrity="sha512-+BMamP0e7wn39JGL8nKAZ3yAQT2dL5oaXWr4ZYlTGkKOaoXM/Yj7c4oy50Ngz5yoUutAG17flueD4F6QpTlPng==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://unpkg.com/json5@^2.0.0/dist/index.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/json5/2.2.1/index.js" integrity="sha512-vsPTY4niI3JD/qfqoodcv9l8Cfn0kGDtlwpbs95ookOuvpD2Srz35We7usTXLIuCFfye6nVfBr+FVQcnG4bRjA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script type="text/javascript" src="main.js"></script>
 </head>
 
@@ -98,22 +91,12 @@
     <div class="container-fluid">
       <a class="navbar-brand" href="https://github.com/collabora/MLfix">
         <img src="logo.svg" alt="" width="62" style="margin-bottom: 3px; margin-right: 3px" class="d-inline-block">
-        MLfix Image v0.2
+        MLfix Image v2.0
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-<!--         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item dropdown">
-            <a class="nav-link active dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-               data-bind="text: source().name">
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdown" data-bind="foreach: sources">
-              <li><a class="dropdown-item" data-bind="text: name, attr: { href: '#'+json_url }, click: function () { model.source($data) }"></a></li>
-            </ul>
-          </li>
-        </ul> -->
         <ul class="navbar-nav ms-auto mb-2 mb-md-0">
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle mx-3" id="markedDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bind="text: 'Marked: '+marked_count()+'/'+photos_count()"></a>
@@ -127,7 +110,7 @@
             <a class="nav-link dropdown-toggle" href="#" id="filterDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="fas fa-exclamation-triangle" style="color: #e51;" data-bind="visible: filter() != 'all' && filtered_photos().length == 0"></i> <span data-bind="text: 'Show '+model.filter()"></span>
             </a>
-            <ul class="dropdown-menu" aria-labelledby="filterDropdown" data-bind="foreach: ['all', 'only marked', 'only unmarked']">
+            <ul class="dropdown-menu" aria-labelledby="filterDropdown" data-bind="foreach: ['all', 'only valid', 'only invalid']">
               <li><a class="dropdown-item" data-bind="css: { active: model.filter() == $data }, click: function () { model.filter($data) }">
                 <span data-bind="text: 'Show '+$data"></span>
               </a></li>
@@ -152,7 +135,7 @@
   <div id="no-photos" data-bind="if: filtered_photos().length == 0">
     There are no photos. Please check your filter setting or select a diferent source.
   </div>
-  <div id="photos" data-bind="foreach: filtered_photos, css: 'filter-'+model.filter().replace(' ', '-')">
+  <div id="photos" data-bind="foreach: filtered_photos, css: 'filter-'+model.filter().replace(' ', '-'), childrenComplete: activate_lazy_load">
     <!-- ko component: {
       name: kind,
       params: $data
