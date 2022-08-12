@@ -123,7 +123,7 @@ class MLfixImpl:
       }
     </style>
     <div id="""+frameid+"""-container class=mlfix-container>
-      <iframe id="""+frameid+""" data-src="/proxy/"""+str(cherrypy.server.bound_addr[1])+"""/"""+frameid+"""/#"""+frameid+""""
+      <iframe id="""+frameid+""" data-src="proxy/"""+str(cherrypy.server.bound_addr[1])+"""/"""+frameid+"""/#"""+frameid+""""
               width="100%" height="500px" frameborder="0" allowfullscreen></iframe>
       <script>(function () {
         var iframe = document.getElementById('"""+frameid+"""');
